@@ -1,0 +1,192 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.7" locale="en">
+    <title>1D s-Aufgabe v a (skalierend)</title>
+    <category>Funktionen schieben</category>
+    <description>Eine Dimension, s(t), v(t), a(t), skalierende vorgegebene Funktion für s(t)</description>
+    <data-containers>
+        <container size="0" static="false">x</container>
+        <container size="0" static="false">dx</container>
+        <container size="0" static="false">vx</container>
+        <container size="0" static="false">vxsmoothed</container>
+        <container size="0" static="false">dvx</container>
+        <container size="0" static="false">ax</container>
+        <container size="0" static="false">axsmoothed</container>
+        <container size="0" static="false">y</container>
+        <container size="0" static="false">t</container>
+        <container size="0" static="false">toff</container>
+        <container size="1" static="false" init="-1">t0</container>
+        <container size="0" static="false">dt</container>
+        <container size="1" static="false">count</container>
+        <container size="1" static="false">count-5</container>
+        <container size="1" static="false">count-10</container>
+        <container size="0" static="false">temp</container>
+        <container size="0" static="false">tout</container>
+        <container size="0" static="false">xout</container>
+        <container size="0" static="false">vxout</container>
+        <container size="0" static="false">axout</container>
+
+        <container size="0" static="false">plot</container>
+    </data-containers>
+    <input>
+        <bluetooth name="Arduino"  mode="notification" rate="1" subscribeOnStart="false">
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian">x</output>
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian" offset="4">y</output>
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian" offset="8">t</output>
+        </bluetooth>
+    </input>
+    <analysis>
+
+        <first>
+            <input clear="false">t</input>
+            <output>temp</output>
+        </first>
+
+        <if less="true">
+            <input clear="false">t0</input>
+            <input type="value">0</input>
+            <input clear="false">temp</input>
+            <output clear="false">t0</output>
+        </if>
+
+        <subtract>
+            <input clear="false">t</input>
+            <input clear="false">t0</input>
+            <output>toff</output>
+        </subtract>
+
+        <differentiate>
+            <input clear="false">toff</input>
+            <output>dt</output>
+        </differentiate>
+
+        <differentiate>
+            <input clear="false">x</input>
+            <output>dx</output>
+        </differentiate>
+
+        <divide>
+            <input clear="false">dx</input>
+            <input clear="false">dt</input>
+            <output>vx</output>
+        </divide>
+
+        <gausssmooth sigma="3">
+            <input clear="false">vx</input>
+            <output>vxsmoothed</output>
+        </gausssmooth>
+
+        <differentiate>
+            <input clear="false">vxsmoothed</input>
+            <output>dvx</output>
+        </differentiate>
+
+        <divide>
+            <input clear="false">dvx</input>
+            <input clear="false">dt</input>
+            <output>ax</output>
+        </divide>
+
+        <gausssmooth sigma="3">
+            <input clear="false">ax</input>
+            <output>axsmoothed</output>
+        </gausssmooth>
+
+        <count>
+            <input clear="false">x</input>
+            <output>count</output>
+        </count>
+
+        <subtract>
+            <input clear="false">count</input>
+            <input type="value">5</input>
+            <output>count-5</output>
+        </subtract>
+
+        <subtract>
+            <input clear="false">count</input>
+            <input type="value">10</input>
+            <output>count-10</output>
+        </subtract>
+
+        <subrange>
+            <input as="from" type="value">5</input>
+            <input as="to" clear="false">count-5</input>
+            <input clear="false">x</input>
+            <output clear="false">xout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" clear="false">count-10</input>
+            <input clear="true">x</input>
+            <output>temp</output>
+        </subrange>
+
+        <append>
+            <input>temp</input>
+            <output>x</output>
+        </append>
+
+        <subrange>
+            <input as="from" type="value">5</input>
+            <input as="to" clear="false">count-5</input>
+            <input clear="false">toff</input>
+            <output clear="false">tout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" clear="false">count-10</input>
+            <input clear="true">t</input>
+            <output>temp</output>
+        </subrange>
+
+        <append>
+            <input>temp</input>
+            <output>t</output>
+        </append>
+
+        <subrange>
+            <input as="from" type="value">5</input>
+            <input as="to" clear="false">count-5</input>
+            <input clear="false">vxsmoothed</input>
+            <output clear="false">vxout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" type="value">5</input>
+            <input as="to" clear="false">count-5</input>
+            <input clear="false">axsmoothed</input>
+            <output clear="false">axout</output>
+        </subrange>
+
+        <formula formula="250*(sin(2*3.14*[1_]/[1])+1)">
+            <input clear="false">tout</input>
+            <output>plot</output>
+        </formula>
+
+    </analysis>
+    <views>
+        <view label="Data">
+            <graph label="s(t)" partialUpdate="true" labelX="t" labelY="s" unitX="s" unitY="mm">
+                <input axis="x">tout</input>
+                <input axis="y">xout</input>
+                <input axis="x" color="green">tout</input>
+                <input axis="y">plot</input>
+            </graph>
+            <graph label="v(t)" partialUpdate="true" labelX="t" labelY="v" unitX="s" unitY="mm/s">
+                <input axis="x">tout</input>
+                <input axis="y">vxout</input>
+            </graph>
+            <graph label="a(t)" partialUpdate="true" labelX="t" labelY="a" unitX="s" unitY="mm/s²">
+                <input axis="x">tout</input>
+                <input axis="y">axout</input>
+            </graph>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="t">tout</data>
+            <data name="s">xout</data>
+            <data name="v">vxout</data>
+            <data name="a">axout</data>
+        </set>
+    </export>
+</phyphox>

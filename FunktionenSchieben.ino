@@ -16,8 +16,7 @@ BleServer server("Arduino"); //Server anlegen
 VL53L0X Sensor1;
 VL53L0X Sensor2;
 
-float distance1,distance2;
-
+float distance1,distance2, t;
 
 void setup()
 {
@@ -47,14 +46,17 @@ void setup()
 void loop()
 {
 
+  t = 0.001*(float)millis();
   distance1 = Sensor1.readRangeContinuousMillimeters();
   distance2 = Sensor2.readRangeContinuousMillimeters();
-  if(distance1 != 8190 && distance2 != 8190){
-    //sendData
-    server.write(distance1,distance2);
-
-    }
+  if (distance1 == 8190)
+    distance1 = 0;
+  if (distance2 == 8190)
+    distance2 = 0;
   
+  //sendData
+  server.write(distance1,distance2, t);
+
   Serial.print(distance1);
   Serial.print("   -    "); 
   Serial.println(distance2);
@@ -81,4 +83,4 @@ void changeAddress(){
     while (1) {}
   }  
   
-  }
+}

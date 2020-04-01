@@ -1,0 +1,250 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.7" locale="en">
+    <title>1D s-Aufgabe v a (fix)</title>
+    <category>Funktionen schieben</category>
+    <description>Eine Dimension, s(t), v(t), a(t), fixe vorgegebene Funktion für s(t)</description>
+    <data-containers>
+        <container size="0" static="false">x</container>
+        <container size="0" static="false">dx</container>
+        <container size="0" static="false">vx</container>
+        <container size="0" static="false">vxsmoothed</container>
+        <container size="0" static="false">dvx</container>
+        <container size="0" static="false">ax</container>
+        <container size="0" static="false">axsmoothed</container>
+        <container size="0" static="false">y</container>
+        <container size="0" static="false">t</container>
+        <container size="0" static="false">toff</container>
+        <container size="1" static="false" init="-1">t0</container>
+        <container size="0" static="false">dt</container>
+        <container size="1" static="false">count</container>
+        <container size="1" static="false">count-5</container>
+        <container size="1" static="false">count-10</container>
+        <container size="0" static="false">temp</container>
+        <container size="0" static="false" init="0">tout</container>
+        <container size="0" static="false" init="0">xout</container>
+        <container size="0" static="false" init="0">vxout</container>
+        <container size="0" static="false" init="0">axout</container>
+
+        <container size="1" init="1">plotselect</container>
+
+        <container size="500" static="true">tplot</container>
+        <container size="500" static="true">linplot</container>
+        <container size="500" static="true">parplot</container>
+        <container size="500" static="true">sinplot</container>
+        <container size="500" static="false">plot</container>
+    </data-containers>
+    <input>
+        <bluetooth name="Arduino"  mode="notification" rate="1" subscribeOnStart="false">
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian">x</output>
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian" offset="4">y</output>
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian" offset="8">t</output>
+        </bluetooth>
+    </input>
+    <analysis>
+
+        <ramp>
+            <input type="value" as="start">0</input>
+            <input type="value" as="stop">5</input>
+            <input type="value" as="length">500</input>
+            <output>tplot</output>
+        </ramp>
+
+        <formula formula="200*([1_]/5)+100">
+            <input clear="false">tplot</input>
+            <output>linplot</output>
+        </formula>
+
+        <formula formula="200*((2*[1_]/5-1)^2)+100">
+            <input clear="false">tplot</input>
+            <output>parplot</output>
+        </formula>
+
+        <formula formula="200*(sin(2*3.14*[1_]/5)+1)+100">
+            <input clear="false">tplot</input>
+            <output>sinplot</output>
+        </formula>
+
+        <if equal="true">
+            <input clear="false">plotselect</input>
+            <input type="value">1</input>
+            <input clear="false">linplot</input>
+            <output clear="false">plot</output>
+        </if>
+
+        <if equal="true">
+            <input clear="false">plotselect</input>
+            <input type="value">2</input>
+            <input clear="false">parplot</input>
+            <output clear="false">plot</output>
+        </if>
+
+        <if equal="true">
+            <input clear="true">plotselect</input>
+            <input type="value">3</input>
+            <input clear="false">sinplot</input>
+            <output clear="false">plot</output>
+        </if>
+
+        <first>
+            <input clear="false">t</input>
+            <output>temp</output>
+        </first>
+
+        <if less="true">
+            <input clear="false">t0</input>
+            <input type="value">0</input>
+            <input clear="false">temp</input>
+            <output clear="false">t0</output>
+        </if>
+
+        <subtract>
+            <input clear="false">t</input>
+            <input clear="false">t0</input>
+            <output>toff</output>
+        </subtract>
+
+        <differentiate>
+            <input clear="false">toff</input>
+            <output>dt</output>
+        </differentiate>
+
+        <differentiate>
+            <input clear="false">x</input>
+            <output>dx</output>
+        </differentiate>
+
+        <divide>
+            <input clear="false">dx</input>
+            <input clear="false">dt</input>
+            <output>vx</output>
+        </divide>
+
+        <gausssmooth sigma="3">
+            <input clear="false">vx</input>
+            <output>vxsmoothed</output>
+        </gausssmooth>
+
+        <differentiate>
+            <input clear="false">vxsmoothed</input>
+            <output>dvx</output>
+        </differentiate>
+
+        <divide>
+            <input clear="false">dvx</input>
+            <input clear="false">dt</input>
+            <output>ax</output>
+        </divide>
+
+        <gausssmooth sigma="3">
+            <input clear="false">ax</input>
+            <output>axsmoothed</output>
+        </gausssmooth>
+
+        <count>
+            <input clear="false">x</input>
+            <output>count</output>
+        </count>
+
+        <subtract>
+            <input clear="false">count</input>
+            <input type="value">5</input>
+            <output>count-5</output>
+        </subtract>
+
+        <subtract>
+            <input clear="false">count</input>
+            <input type="value">10</input>
+            <output>count-10</output>
+        </subtract>
+
+        <subrange>
+            <input as="from" type="value">5</input>
+            <input as="to" clear="false">count-5</input>
+            <input clear="false">x</input>
+            <output clear="false">xout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" clear="false">count-10</input>
+            <input clear="true">x</input>
+            <output>temp</output>
+        </subrange>
+
+        <append>
+            <input>temp</input>
+            <output>x</output>
+        </append>
+
+        <subrange>
+            <input as="from" type="value">5</input>
+            <input as="to" clear="false">count-5</input>
+            <input clear="false">toff</input>
+            <output clear="false">tout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" clear="false">count-10</input>
+            <input clear="true">t</input>
+            <output>temp</output>
+        </subrange>
+
+        <append>
+            <input>temp</input>
+            <output>t</output>
+        </append>
+
+        <subrange>
+            <input as="from" type="value">5</input>
+            <input as="to" clear="false">count-5</input>
+            <input clear="false">vxsmoothed</input>
+            <output clear="false">vxout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" type="value">5</input>
+            <input as="to" clear="false">count-5</input>
+            <input clear="false">axsmoothed</input>
+            <output clear="false">axout</output>
+        </subrange>
+
+    </analysis>
+    <views>
+        <view label="Daten">
+            <graph label="s(t)" partialUpdate="false" labelX="t" labelY="s" unitX="s" unitY="mm">
+                <input axis="x">tout</input>
+                <input axis="y">xout</input>
+                <input axis="x" color="green">tplot</input>
+                <input axis="y">plot</input>
+            </graph>
+            <graph label="v(t)" partialUpdate="true" labelX="t" labelY="v" unitX="s" unitY="mm/s">
+                <input axis="x">tout</input>
+                <input axis="y">vxout</input>
+            </graph>
+            <graph label="a(t)" partialUpdate="true" labelX="t" labelY="a" unitX="s" unitY="mm/s²">
+                <input axis="x">tout</input>
+                <input axis="y">axout</input>
+            </graph>
+        </view>
+        <view label="Auswahl">
+            <button label="Linear">
+                <input type="value">1</input>
+                <output>plotselect</output>
+            </button>
+            <button label="Parabel">
+                <input type="value">2</input>
+                <output>plotselect</output>
+            </button>
+            <button label="Sinus">
+                <input type="value">3</input>
+                <output>plotselect</output>
+            </button>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="t">tout</data>
+            <data name="s">xout</data>
+            <data name="v">vxout</data>
+            <data name="a">axout</data>
+        </set>
+    </export>
+</phyphox>
