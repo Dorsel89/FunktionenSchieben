@@ -5,6 +5,7 @@ BleServer server("Arduino"); //Server anlegen
 
 #define XSHUT_pin1 19
 #define XSHUT_pin2 18
+#define ButtonPin  2
 
 
 #define Sensor1_newAddress 42
@@ -16,7 +17,7 @@ BleServer server("Arduino"); //Server anlegen
 VL53L0X Sensor1;
 VL53L0X Sensor2;
 
-float distance1,distance2, t;
+float distance1,distance2, t, b;
 
 void setup()
 {
@@ -24,6 +25,7 @@ void setup()
   //disable tof sensors using shutdown pins 
   pinMode(XSHUT_pin1, OUTPUT);   
   pinMode(XSHUT_pin2, OUTPUT);
+  pinMode(ButtonPin, INPUT_PULLUP);
   digitalWrite(XSHUT_pin1, LOW);
   digitalWrite(XSHUT_pin2, LOW);
  
@@ -53,13 +55,17 @@ void loop()
     distance1 = 0;
   if (distance2 == 8190)
     distance2 = 0;
+
+  b = (float)digitalRead(ButtonPin);
   
   //sendData
-  server.write(distance1,distance2, t);
+  server.write(distance1,distance2, t, b);
 
   Serial.print(distance1);
   Serial.print("   -    "); 
   Serial.println(distance2);
+  Serial.print("   -    "); 
+  Serial.println(b);
 }
 
 void changeAddress(){
