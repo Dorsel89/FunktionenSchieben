@@ -1,0 +1,280 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.7" locale="en">
+    <title>1D s-Aufgabe Score v a (fix) Sigma 5</title>
+    <category>Funktionen schieben</category>
+    <description>Eine Dimension, s(t), v(t), a(t), fixe vorgegebene Funktion für s(t)</description>
+    <data-containers>
+        <container size="0" static="false">x</container>
+        <container size="0" static="false">dx</container>
+        <container size="0" static="false">vx</container>
+        <container size="0" static="false">vxsmoothed</container>
+        <container size="0" static="false">dvx</container>
+        <container size="0" static="false">ax</container>
+        <container size="0" static="false">axsmoothed</container>
+        <container size="0" static="false">y</container>
+        <container size="0" static="false">t</container>
+        <container size="0" static="false">toff</container>
+        <container size="1" static="false" init="-1">t0</container>
+        <container size="0" static="false">dt</container>
+        <container size="1" static="true" init="10">calculationmargin</container>  <!-- SIGMAEDIT Dies ist der Abstand vom zu glättenden Punkt bis zu welchem Messwerte existieren müssen, damit er berechnet wird. Zu klein und die Glättung kann nicht breiter werden und entartet zu einem gleitenden Mittelwert über diese Breite. Zu groß und die Ergebnisse werden sehr verzögert angezeigt. -->
+        <container size="1" static="false">count</container>
+        <container size="1" static="false">count-n/2</container>
+        <container size="1" static="false">count-n</container>
+        <container size="0" static="false">temp</container>
+        <container size="0" static="false" init="0">tout</container>
+        <container size="0" static="false" init="0">xout</container>
+        <container size="0" static="false" init="0">vxout</container>
+        <container size="0" static="false" init="0">axout</container>
+
+        <container size="1" init="1">plotselect</container>
+
+        <container size="500" static="true">tplot</container>
+        <container size="500" static="true">linplot</container>
+        <container size="500" static="true">parplot</container>
+        <container size="500" static="true">sinplot</container>
+        <container size="500" static="false">plot</container>
+
+        <container size="1">threshold</container>
+        <container size="1">plotval</container>
+        <container size="1" init="0">score</container>
+    </data-containers>
+    <input>
+        <bluetooth name="Arduino"  mode="notification" rate="1" subscribeOnStart="false">
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian">x</output>
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian" offset="4">y</output>
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian" offset="8">t</output>
+        </bluetooth>
+    </input>
+    <analysis>
+
+        <ramp>
+            <input type="value" as="start">0</input>
+            <input type="value" as="stop">5</input>
+            <input type="value" as="length">500</input>
+            <output>tplot</output>
+        </ramp>
+
+        <formula formula="200*([1_]/5)+100">
+            <input clear="false">tplot</input>
+            <output>linplot</output>
+        </formula>
+
+        <formula formula="200*((2*[1_]/5-1)^2)+100">
+            <input clear="false">tplot</input>
+            <output>parplot</output>
+        </formula>
+
+        <formula formula="200*(sin(2*3.14*[1_]/5)+1)+100">
+            <input clear="false">tplot</input>
+            <output>sinplot</output>
+        </formula>
+
+        <if equal="true">
+            <input clear="false">plotselect</input>
+            <input type="value">1</input>
+            <input clear="false">linplot</input>
+            <output clear="false">plot</output>
+        </if>
+
+        <if equal="true">
+            <input clear="false">plotselect</input>
+            <input type="value">2</input>
+            <input clear="false">parplot</input>
+            <output clear="false">plot</output>
+        </if>
+
+        <if equal="true">
+            <input clear="true">plotselect</input>
+            <input type="value">3</input>
+            <input clear="false">sinplot</input>
+            <output clear="false">plot</output>
+        </if>
+
+        <first>
+            <input clear="false">t</input>
+            <output>temp</output>
+        </first>
+
+        <if less="true">
+            <input clear="false">t0</input>
+            <input type="value">0</input>
+            <input clear="false">temp</input>
+            <output clear="false">t0</output>
+        </if>
+
+        <subtract>
+            <input clear="false">t</input>
+            <input clear="false">t0</input>
+            <output>toff</output>
+        </subtract>
+
+        <differentiate>
+            <input clear="false">toff</input>
+            <output>dt</output>
+        </differentiate>
+
+        <differentiate>
+            <input clear="false">x</input>
+            <output>dx</output>
+        </differentiate>
+
+        <divide>
+            <input clear="false">dx</input>
+            <input clear="false">dt</input>
+            <output>vx</output>
+        </divide>
+
+        <gausssmooth sigma="5"> <!-- SIGMAEDIT Hier ist die Breite der Gauskurve zur Glättung des v-t-Diagramms in Anzahl der Messwerte -->
+            <input clear="false">vx</input>
+            <output>vxsmoothed</output>
+        </gausssmooth>
+
+        <differentiate>
+            <input clear="false">vxsmoothed</input>
+            <output>dvx</output>
+        </differentiate>
+
+        <divide>
+            <input clear="false">dvx</input>
+            <input clear="false">dt</input>
+            <output>ax</output>
+        </divide>
+
+        <gausssmooth sigma="5"> <!-- SIGMAEDIT Hier ist die Breite der Gauskurve zur Glättung des a-t-Diagramms in Anzahl der Messwerte -->
+            <input clear="false">ax</input>
+            <output>axsmoothed</output>
+        </gausssmooth>
+
+        <count>
+            <input clear="false">x</input>
+            <output>count</output>
+        </count>
+
+        <subtract>
+            <input clear="false">count</input>
+            <input clear="false">calculationmargin</input>
+            <output>count-n/2</output>
+        </subtract>
+
+        <subtract>
+            <input clear="false">count-n/2</input>
+            <input clear="false">calculationmargin</input>
+            <output>count-n</output>
+        </subtract>
+
+        <subrange>
+            <input as="from" clear="false">calculationmargin</input>
+            <input as="to" clear="false">count-n/2</input>
+            <input clear="false">x</input>
+            <output clear="false">xout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" clear="false">count-n</input>
+            <input clear="true">x</input>
+            <output>temp</output>
+        </subrange>
+
+        <append>
+            <input>temp</input>
+            <output>x</output>
+        </append>
+
+        <subrange>
+            <input as="from" clear="false">calculationmargin</input>
+            <input as="to" clear="false">count-n/2</input>
+            <input clear="false">toff</input>
+            <output clear="false">tout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" clear="false">count-n</input>
+            <input clear="true">t</input>
+            <output>temp</output>
+        </subrange>
+
+        <append>
+            <input>temp</input>
+            <output>t</output>
+        </append>
+
+        <subrange>
+            <input as="from" clear="false">calculationmargin</input>
+            <input as="to" clear="false">count-n/2</input>
+            <input clear="false">vxsmoothed</input>
+            <output clear="false">vxout</output>
+        </subrange>
+
+        <subrange>
+            <input as="from" clear="false">calculationmargin</input>
+            <input as="to" clear="false">count-n/2</input>
+            <input clear="false">axsmoothed</input>
+            <output clear="false">axout</output>
+        </subrange>
+
+        <threshold>
+            <input as="y" clear="false">tplot</input>
+            <input as="threshold" clear="false">tout</input>
+            <output>threshold</output>
+        </threshold>
+
+        <subrange>
+            <input clear="false">plot</input>
+            <input as="from">threshold</input>
+            <input as="length" type="value">1</input>
+            <output>plotval</output>
+        </subrange>
+
+        <formula formula="[4]+(0.5*(sign(50-abs([1]-[2]))+1)) * (0.5*(sign(5-[3])+1)) * 0.1*(50-abs([1]-[2]))"> <!-- SCOREEDIT Hier steht die Formel für die Bewertung jedes Punkts. Im Zentrum steht [1]-[2], was die Differenz zwischen Vorgabe und gefahrener Kurve ist. Der beiden sign(...)-Teile prüfen das Vorzeichen der Formel und von (t-5) und nimmt 1 an, wenn es postive ist und 0 wenn es negativ ist - als Produkt verhindert es, dass Punkte abgezogen werden, wenn die Werte zu weit entfernt sind oder wenn man am Ende des Plots angekommen ist. -->
+            <input>plotval</input>
+            <input clear="false">xout</input>
+            <input clear="false">tout</input>
+            <input clear="false">score</input>
+            <output clear="false">score</output>
+        </formula>
+
+    </analysis>
+    <views>
+        <view label="Daten">
+            <graph label="s(t)" partialUpdate="false" labelX="t" labelY="s" unitX="s" unitY="mm">
+                <input axis="x">tout</input>
+                <input axis="y">xout</input>
+                <input axis="x" color="green">tplot</input>
+                <input axis="y">plot</input>
+            </graph>
+            <graph label="v(t)" partialUpdate="true" labelX="t" labelY="v" unitX="s" unitY="mm/s">
+                <input axis="x">tout</input>
+                <input axis="y">vxout</input>
+            </graph>
+            <graph label="a(t)" partialUpdate="true" labelX="t" labelY="a" unitX="s" unitY="mm/s²">
+                <input axis="x">tout</input>
+                <input axis="y">axout</input>
+            </graph>
+
+            <value label="Score" size="2">
+                <input>score</input>
+            </value>
+        </view>
+        <view label="Auswahl">
+            <button label="Linear">
+                <input type="value">1</input>
+                <output>plotselect</output>
+            </button>
+            <button label="Parabel">
+                <input type="value">2</input>
+                <output>plotselect</output>
+            </button>
+            <button label="Sinus">
+                <input type="value">3</input>
+                <output>plotselect</output>
+            </button>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="t">tout</data>
+            <data name="s">xout</data>
+            <data name="v">vxout</data>
+            <data name="a">axout</data>
+        </set>
+    </export>
+</phyphox>
