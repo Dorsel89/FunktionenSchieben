@@ -51,7 +51,7 @@ void loop()
 
   t = 0.001*(float)millis();
   distance1 = Sensor1.readRangeContinuousMillimeters();
-  distance2 = 1.0 //Sensor2.readRangeContinuousMillimeters();
+  distance2 = 1.0; //Sensor2.readRangeContinuousMillimeters();
   if (distance1 == 8190)
     distance1 = 0;
   if (distance2 == 8190)
