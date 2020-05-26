@@ -9,6 +9,10 @@
     <data-containers>
         <container size="1" static="false">button</container>
 
+        <container size="2" static="true" init="0,5">tpreview</container>
+        <container size="1" >lastx</container>
+        <container size="2" >preview</container>
+
         <container size="0">xin</container>
         <container size="0">tin</container>
         <container size="1">tlast</container>
@@ -18,6 +22,8 @@
         <container size="0">tcorrected</container>
         <container size="0">x</container>
         <container size="0">t</container>
+        <container size="0">xshow</container>
+        <container size="0">tshow</container>
 
         <container size="1" init="0.1">dt</container> <!-- Schrittweite für Glättung (kann normalerweise so bleiben) -->
         <container size="1" init="0.5">d</container>  <!-- Breite der Glättung in Sekunden -->
@@ -83,6 +89,19 @@
         </bluetooth>
     </input>
     <analysis>
+
+        <!-- VORSCHAU DER POSITION -->
+
+        <append>
+            <input clear="false">xin</input>
+            <output clear="false">lastx</output>
+        </append>
+
+        <append>
+            <input clear="false">lastx</input>
+            <input clear="false">lastx</input>
+            <output clear="false">preview</output>
+        </append>
 
         <!-- VORGABE-KURVE -->
 
@@ -413,6 +432,56 @@
             <output as="average">score</output>
         </average>
 
+        <append>
+            <input clear="false">t</input>
+            <output>tshow</output>
+        </append>
+
+        <append>
+            <input clear="false">x</input>
+            <output>xshow</output>
+        </append>
+
+        <!-- Fill some graphs with empty data to allow plotting if we do not yet have data -->
+
+        <count>
+            <input clear="false">toutpreview</input>
+            <output>temp</output>
+        </count>
+
+        <if less="true">
+            <input clear="false">temp</input>
+            <input type="value">1</input>
+            <input type="value">0</input>
+            <output clear="false">toutpreview</output>
+        </if>
+
+        <if less="true">
+            <input clear="false">temp</input>
+            <input type="value">1</input>
+            <input type="value">0</input>
+            <output clear="false">xoutpreview</output>
+        </if>
+
+        <count>
+            <input clear="false">tshow</input>
+            <output>temp</output>
+        </count>
+
+        <if less="true">
+            <input clear="false">temp</input>
+            <input type="value">1</input>
+            <input type="value">0</input>
+            <output clear="false">tshow</output>
+        </if>
+
+        <if less="true">
+            <input clear="false">temp</input>
+            <input type="value">1</input>
+            <input type="value">0</input>
+            <output clear="false">xshow</output>
+        </if>
+
     </analysis>
     <views>
         <view label="Daten">
@@ -422,10 +491,12 @@
             <graph label="s(t)" partialUpdate="false" labelX="t" labelY="s" unitX="s" unitY="mm">
                 <input axis="x" lineWidth="2">toutpreview</input>
                 <input axis="y">xoutpreview</input>
-                <input axis="x" style="dots" color="white">t</input>
-                <input axis="y">x</input>
+                <input axis="x" style="dots" color="white">tshow</input>
+                <input axis="y">xshow</input>
                 <input axis="x" color="green">reference_plot_time</input>
                 <input axis="y">reference_plot</input>
+                <input axis="x" color="yellow">tpreview</input>
+                <input axis="y">preview</input>
             </graph>
             <graph label="v(t)" partialUpdate="true" labelX="t" labelY="v" unitX="s" unitY="mm/s">
                 <input axis="x" lineWidth="2">toutpreview</input>
