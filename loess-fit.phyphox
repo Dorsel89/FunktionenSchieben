@@ -1,0 +1,157 @@
+<phyphox xmlns="http://phyphox.org/xml" version="1.10" locale="en">
+    <title>LOESS Fit</title>
+    <category>Funktionen schieben</category>
+    <description>s(t) wird mittels LOESS geglättet und die kubischen Fitparameter direkt zur Beschreibung von v(t) und a(t) verwendet.</description>
+    <data-containers>
+        <container size="0">x</container>
+        <container size="0">tin</container>
+        <container size="0">t</container>
+
+        <container size="1" init="0.1">dt</container> <!-- Schrittweite für Glättung (kann normalerweise so bleiben) -->
+        <container size="1" init="0.5">d</container>  <!-- Breite der Glättung in Sekunden -->
+
+        <container size="0">tout</container>
+        <container size="0">xout</container>
+        <container size="0">vout</container>
+        <container size="0">aout</container>
+
+        <container size="1">newsmoothstart</container>
+        <container size="1">newsmoothstop</container>
+        <container size="1">tmaxsmooth</container>
+
+        <container size="101">newsmoothti100</container>
+        <container size="101">newsmoothti</container>
+        <container size="101">newsmoothxi</container>
+        <container size="101">newsmoothvi</container>
+        <container size="101">newsmoothai</container>
+
+        <container size="1">temp</container>
+        <container size="1" init="0">zero</container>
+    </data-containers>
+    <input>
+        <bluetooth name="Arduino" mode="notification" subscribeOnStart="false">
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian">x</output>
+            <output char="59f51a40-8852-4abe-a50f-2d45e6bd51ac" conversion="float32LittleEndian" offset="8">tin</output>
+        </bluetooth>
+    </input>
+    <analysis>
+
+        <!-- Ersten Wert auf Null setzen -->
+
+        <first>
+            <input clear="false">tin</input>
+            <output>temp</output>
+        </first>
+
+        <subtract>
+            <input clear="false">tin</input>
+            <input clear="false">temp</input>
+            <output clear="true">t</output>
+        </subtract>
+
+        <!-- Neue Stützstellen für Glättung suchen -->
+
+        <append>
+            <input clear="false">zero</input>
+            <input clear="false">tout</input>
+            <output>temp</output>               <!-- Letzter schon berechneter Glättungswert -->
+        </append>
+
+        <add>
+            <input>temp</input>
+            <input clear="false">dt</input>
+            <output>newsmoothstart</output>     <!-- Erster zu berechnender Glättungswert -->
+        </add>
+
+        <append>
+            <input clear="false">zero</input>
+            <input clear="false">t</input>
+            <output>temp</output>               <!-- Letzter Rohdatenwert, der schon aufgenommen wurde -->
+        </append>
+
+        <subtract>
+            <input>temp</input>
+            <input clear="false">d</input>
+            <output>tmaxsmooth</output>         <!-- Maximale Zeit, bis zu der eine Glättung schon sinnvoll wäre -->
+        </subtract>
+
+        <formula formula="[1]+100*[2]">
+            <input clear="false">newsmoothstart</input>
+            <input clear="false">dt</input>
+            <output>newsmoothstop</output>      <!-- Höchster der möglichen neuen Glättungswerte, der aber weit hinter den sinnvollen liegen kann -->
+        </formula>
+
+        <ramp>
+            <input as="start">newsmoothstart</input>
+            <input as="stop">newsmoothstop</input>
+            <output>newsmoothti100</output>     <!-- Mögliche neue Glättungswerte -->
+        </ramp>
+
+        <rangefilter>
+            <input>newsmoothti100</input>
+            <input as="max">tmaxsmooth</input>
+            <output>newsmoothti</output>        <!-- Die Zeiten, zu denen wir nun wirklich glätten -->
+        </rangefilter>
+
+        <!-- Glätten -->
+
+        <loess>
+            <input as="x" clear="false">t</input>
+            <input as="y" clear="false">x</input>
+            <input as="xi" clear="false">newsmoothti</input>
+            <input as="d" clear="false">d</input>
+            <output as="yi0">newsmoothxi</output>
+            <output as="yi1">newsmoothvi</output>
+            <output as="yi2">newsmoothai</output>
+        </loess>
+
+        <!-- Ergebnisse anhängen -->
+
+        <append>
+            <input>newsmoothti</input>
+            <output clear="false">tout</output>
+        </append>
+
+        <append>
+            <input>newsmoothxi</input>
+            <output clear="false">xout</output>
+        </append>
+
+        <append>
+            <input>newsmoothvi</input>
+            <output clear="false">vout</output>
+        </append>
+
+        <append>
+            <input>newsmoothai</input>
+            <output clear="false">aout</output>
+        </append>
+
+    </analysis>
+    <views>
+        <view label="Daten">
+            <graph label="s(t)" partialUpdate="false" labelX="t" labelY="s" unitX="s" unitY="mm">
+                <input axis="x" lineWidth="2">tout</input>
+                <input axis="y">xout</input>
+                <input axis="x" style="dots" color="white">t</input>
+                <input axis="y">x</input>
+            </graph>
+            <graph label="v(t)" partialUpdate="true" labelX="t" labelY="v" unitX="s" unitY="mm/s">
+                <input axis="x" lineWidth="2">tout</input>
+                <input axis="y">vout</input>
+            </graph>
+            <graph label="a(t)" partialUpdate="true" labelX="t" labelY="a" unitX="s" unitY="mm/s²">
+                <input axis="x" lineWidth="2">tout</input>
+                <input axis="y">aout</input>
+            </graph>
+        </view>
+    </views>
+    <export>
+        <set name="Data">
+            <data name="t">tout</data>
+            <data name="s">xout</data>
+            <data name="v">vout</data>
+            <data name="a">aout</data>
+        </set>
+    </export>
+</phyphox>
