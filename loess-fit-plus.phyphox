@@ -9,16 +9,16 @@
     <data-containers>
         <container size="1" static="false">button</container>
 
-        <container size="2" static="true" init="0,5">tpreview</container>
-        <container size="1" >lastx</container>
-        <container size="2" >preview</container>
+        <container size="2">tpreview</container>
+        <container size="1">lastx</container>
+        <container size="2">preview</container>
 
         <container size="0">xin</container>
         <container size="0">tin</container>
         <container size="1">tlast</container>
         <container size="1">tinfirst</container>
         <container size="1">newoffset</container>
-        <container size="1" init="-1">offset</container>
+        <container size="1" init="-1000">offset</container>
         <container size="0">tcorrected</container>
         <container size="0">x</container>
         <container size="0">t</container>
@@ -73,7 +73,6 @@
         <container size="101">incompletesmoothai</container>
 
         <container size="1">temp</container>
-        <container size="1" init="0">zero</container>
 
         <container size="0">scorable_time</container>
         <container size="0">scorable_data</container>
@@ -95,6 +94,12 @@
         <append>
             <input clear="false">xin</input>
             <output clear="false">lastx</output>
+        </append>
+
+        <append>
+            <input clear="false">reference_plot_time</input>
+            <input type="value">0</input>
+            <output clear="false">tpreview</output>
         </append>
 
         <append>
@@ -222,9 +227,9 @@
         </first>
 
         <append>
-            <input clear="false">zero</input>
+            <input type="value">-3</input>      <!-- Startzeit für den allerersten Datenpunkt -->
             <input clear="false">t</input>
-            <output>tlast</output>              <!-- Last timestamp already stored or zero. This is in units of the x axis -->
+            <output>tlast</output>              <!-- Last timestamp already stored or start value. This is in units of the x axis -->
         </append>
 
         <formula formula="[1]-[2]-0.05">
@@ -235,7 +240,7 @@
 
         <if less="true">
             <input clear="false">offset</input>
-            <input type="value">0</input>
+            <input type="value">-100</input>
             <input clear="false">newoffset</input>      <!-- Set offset to newoffset if it is no longer valid -->
             <output clear="false">offset</output>
         </if>
@@ -249,7 +254,7 @@
         <if equal="true">
             <input clear="false">button</input>
             <input type="value">0</input>
-            <input type="value">-1</input>
+            <input type="value">-1000</input>
             <output clear="false">offset</output>       <!-- If the button is not pressed, reset the offset -->
         </if>
 
@@ -280,7 +285,7 @@
         <!-- Neue Stützstellen für Glättung suchen -->
 
         <append>
-            <input clear="false">zero</input>
+            <input type="value">0</input>
             <input clear="false">tout</input>
             <output>temp</output>               <!-- Letzter schon berechneter Glättungswert -->
         </append>
@@ -292,7 +297,7 @@
         </add>
 
         <append>
-            <input clear="false">zero</input>
+            <input type="value">0</input>
             <input clear="false">t</input>
             <output>temp</output>               <!-- Letzter Rohdatenwert, der schon aufgenommen wurde -->
         </append>
@@ -322,7 +327,7 @@
         </rangefilter>
 
         <append>
-            <input clear="false">zero</input>
+            <input type="value">0</input>
             <input clear="false">t</input>
             <output>temp</output>               <!-- Erneut letzter Rohdatenwert, der schon aufgenommen wurde -->
         </append>
