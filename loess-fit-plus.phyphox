@@ -512,7 +512,7 @@
                 <input axis="y">aoutpreview</input>
             </graph>
             <button label="Neu starten">
-                <input type="value">-1</input>
+                <input type="value">-1000</input>
                 <output>offset</output>
                 <input type="empty" />
                 <output>t</output>
