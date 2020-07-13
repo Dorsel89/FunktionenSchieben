@@ -17,7 +17,7 @@ GND <-> GND
 GPIO 21 <-> SDA (zusätzlich ist ein Pull-Up Widerstand oft nötig -> 2.2kOhm von SDA auf 3.3V) 
 GPIO 22 <-> SCL (zusätzlich ist ein Pull-Up Widerstand oft nötig -> 2.2kOhm von SCL auf 3.3V) 
 
-Die Pin-Nummer beziehen sich auf den ESP32 Hiamalaya.
+Die Pin-Nummer beziehen sich auf den ESP32 Hiamalaya. Eine PinList für den ESP32 Himalaya findet sich in der Datei "ESP32 Himalaya PinList.pdf" in diesem Repository.
 
 # Software Installation:
 - In der Arduino IDE kann über "Sketch" -> "Bibliothek einbinden" ->  "Bibliotheken Verwalten" der Bibliotheksverwalter geöffnet werden. Darüber lässt sich ide vl5310x Bibliothek von polulu finden und installieren. Die phyphox Bibliothek ist zum aktuellen Stand (Juli 2020) noch nicht über den Bibliotheksverwalter zu finden. Die Bibliothek kann aber aus dem oben verlinkten Repository heruntergeladen werden (als Zip Datei). Anschließend kann die Bibliothek in der Arduino IDE über "Sketch" -> "Bibliothek einbinden" -> ".Zip Bibliothek hinzufügen" installiert werden.
