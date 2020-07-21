@@ -6,7 +6,7 @@ Verwendeter Mikrocontroller:
 Verwendete Bibliotheken:  
 - https://github.com/pololu/vl53l0x-arduino  
 
-- https://github.com/Staacks/phyphox-android  
+- https://github.com/Dorsel89/phyphox-arduino 
 
 # Hardware Installation
 Der Distanzsensor wird in diesem Projekt über die Schnittstelle I2C wie folgt angeschlossen:
